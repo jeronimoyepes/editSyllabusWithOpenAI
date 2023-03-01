@@ -6,6 +6,18 @@ import PyPDF2
 import openai
 import os
 
+# Scripts
+from get_inputs import capture_openAI_model, capture_syllabus_selected_section
+
+from bs4 import BeautifulSoup
+
+# Función para leer XML (HTML)
+
+
+def BS(markup):
+    return BeautifulSoup(markup, "lxml")
+
+
 my_directory = os.path.dirname(__file__)
 
 # Set OpenAI API key
@@ -68,7 +80,7 @@ def get_text_from_file(file_to_read):
 # Function to get openAI response
 
 
-def call_openAI_API(prompt):
+def call_openAI_API(prompt, model, text):
     print(
         f"\n__Calling OpenAI with the prompt:\n {prompt} \n\n End of prompt__ \n\n Waiting for OpenAI response...\n")
     completions = openai.Completion.create(
@@ -87,6 +99,8 @@ def call_openAI_API(prompt):
     return response
 
 # Function to write word document with given prompt and response
+
+
 def write_docx(prompt, response):
     document = Document()
     document.add_heading("Documento generado automáticamente con el prompt:")
@@ -95,38 +109,32 @@ def write_docx(prompt, response):
     document.add_paragraph(response)
     document.save('OpenAI response.docx')
 
-def capture_syllabus_selected_section():
 
-    while True:
-        # Prompt para seleccionar la sección a usar
-        syllabus_section_prompt = input(
-            "\nWich section of the document you wish to use?: \n1. Objective \n2. Justification\nR: ")
-        
-        def break_loop(section_name):
-            print(f"\n{section_name} selected")
-            return section_name
-
-        if syllabus_section_prompt == "1":
-            return break_loop("Objective")
-            
-        if syllabus_section_prompt == "2":
-            return break_loop("Justification")
-
-        print("\nType a valid option and press ENTER")
+def read_syllabus_HTML():
+    with open(os.path.join(my_directory, "syllabus/current.html"), encoding="UTF-8") as html_doc:
+        return BS(html_doc)
 
 
 if __name__ == "__main__":
 
+    # Capturar y almacenar la sección del syllabus que se desea usar
     syllabus_selected_section = capture_syllabus_selected_section()
 
+    # Leer el HTML del syllabus y almacenarlo en una variable
+    syllabus_virtual_document = read_syllabus_HTML()
+
+    openAi_model = capture_openAI_model()
+
+    # print(syllabus_virtual_document.find(syllabus_selected_section).text)
+
     # 2. Leer la estructura del html
-    #   - Duplicar el archivo original (agregar fecha y hora)
     #   - Buscar el archivo
     #   - Verificar la integridad
     #   - Tomar solo la sección deseada
     # 3. Pedir el prompt del tipo de acción (Completar o editar)
     # 4. Hacer el llamado a la api
     # 5. Reconstruir el documento y guardarlo
+    #   - Duplicar el archivo original (agregar fecha y hora)
 
     # OpenAI prompt (What you want to do with de text_from_file)
     openai_prompt = input(
