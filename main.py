@@ -15,6 +15,8 @@ openai.api_key = "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"
 openai_maximum_content_length = 2049
 
 # Trim text for OpenAI maximum context length
+
+
 def trim_text(text_from_file):
     correct_text_length = openai_maximum_content_length - len(openai_prompt)
     preprocess_text = text_from_file.replace("\n", " ")
@@ -23,6 +25,8 @@ def trim_text(text_from_file):
     return trims[0]
 
 # Function to get text from Word document
+
+
 def read_docx(filename):
     doc = docx.Document(filename)
     full_text = []
@@ -31,6 +35,8 @@ def read_docx(filename):
     return '\n'.join(full_text)
 
 # Function to get text from PDF
+
+
 def read_pdf(filename):
     pdf_file = open(filename, 'rb')
     pdf_reader = PyPDF2.PdfReader(pdf_file)
@@ -41,6 +47,8 @@ def read_pdf(filename):
     return '\n'.join(full_text).strip('\n')
 
 # Function to get text from file
+
+
 def get_text_from_file(file_to_read):
     # Get file extension
     file_extension = file_to_read.split('.')[-1].lower()
@@ -58,6 +66,8 @@ def get_text_from_file(file_to_read):
     return extracted_text
 
 # Function to get openAI response
+
+
 def call_openAI_API(prompt):
     print(
         f"\n__Calling OpenAI with the prompt:\n {prompt} \n\n End of prompt__ \n\n Waiting for OpenAI response...\n")
@@ -85,10 +95,30 @@ def write_docx(prompt, response):
     document.add_paragraph(response)
     document.save('OpenAI response.docx')
 
+def capture_syllabus_selected_section():
+
+    while True:
+        # Prompt para seleccionar la sección a usar
+        syllabus_section_prompt = input(
+            "\nWich section of the document you wish to use?: \n1. Objective \n2. Justification\nR: ")
+        
+        def break_loop(section_name):
+            print(f"\n{section_name} selected")
+            return section_name
+
+        if syllabus_section_prompt == "1":
+            return break_loop("Objective")
+            
+        if syllabus_section_prompt == "2":
+            return break_loop("Justification")
+
+        print("\nType a valid option and press ENTER")
+
+
 if __name__ == "__main__":
 
-    
-    # 1. Prompt para seleccionar la sección a usar
+    syllabus_selected_section = capture_syllabus_selected_section()
+
     # 2. Leer la estructura del html
     #   - Duplicar el archivo original (agregar fecha y hora)
     #   - Buscar el archivo
@@ -96,11 +126,11 @@ if __name__ == "__main__":
     #   - Tomar solo la sección deseada
     # 3. Pedir el prompt del tipo de acción (Completar o editar)
     # 4. Hacer el llamado a la api
-    # 5. Reconstruir el documento y guardarlo 
-    
+    # 5. Reconstruir el documento y guardarlo
 
     # OpenAI prompt (What you want to do with de text_from_file)
-    openai_prompt = input("Type something to do with the document: ") + " from the following text:"
+    openai_prompt = input(
+        "\nType something to do with the document: ") + " from the following text:"
 
     # Docx filename
     file_name = input("Write the file name: ") or "defaultfile.pdf"
@@ -114,7 +144,7 @@ if __name__ == "__main__":
         print(f"File path: {file_path}\n")
 
         text_from_file = get_text_from_file(file_path)
-        
+
         if text_from_file:
 
             # Generate the prompt for the OpenAI API
