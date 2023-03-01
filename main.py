@@ -81,21 +81,36 @@ def get_text_from_file(file_to_read):
 
 
 def call_openAI_API(prompt, model, text):
-    print(
-        f"\n__Calling OpenAI with the prompt:\n {prompt} \n\n End of prompt__ \n\n Waiting for OpenAI response...\n")
-    completions = openai.Completion.create(
-        engine="davinci",
-        prompt=prompt,
-        max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.7,
-    )
+
+    print(f"\n__Calling OpenAI with the prompt:\n {prompt} \n\n Using the model: '{model}' \n\n Waiting for OpenAI response...\n")
+
+    # Leer esta vuelta https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api 
+
+    if model == "edition": 
+        completions = openai.Edit.create(
+            engine="text-davinci-edit-001",
+            input=text,
+            instruction=prompt,
+            max_tokens=1024,
+            n=1,
+            temperature=0.7,
+        )
+        
+    if model  == "completion":
+        completions = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=1024,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+
+    
     # Get openAI response text
     response = completions.choices[0].text
     # Clean up openAI response text
     response = response.replace('\n', ' ')
-    response = response.replace('Syllabus:', '').strip()
     return response
 
 # Function to write word document with given prompt and response
@@ -123,22 +138,23 @@ if __name__ == "__main__":
     # Leer el HTML del syllabus y almacenarlo en una variable
     syllabus_virtual_document = read_syllabus_HTML()
 
-    openAi_model = capture_openAI_model()
-
-    # print(syllabus_virtual_document.find(syllabus_selected_section).text)
-
-    # 2. Leer la estructura del html
-    #   - Buscar el archivo
-    #   - Verificar la integridad
-    #   - Tomar solo la sección deseada
-    # 3. Pedir el prompt del tipo de acción (Completar o editar)
-    # 4. Hacer el llamado a la api
-    # 5. Reconstruir el documento y guardarlo
-    #   - Duplicar el archivo original (agregar fecha y hora)
+    openai_model = capture_openAI_model()
 
     # OpenAI prompt (What you want to do with de text_from_file)
     openai_prompt = input(
-        "\nType something to do with the document: ") + " from the following text:"
+        "\nType something to do with the document: ")
+
+    # Sección de texto del syllabus
+    openai_text = syllabus_virtual_document.find(
+        syllabus_selected_section).text
+
+    # Llamado a la API de OpenAI 
+    openAI_response = call_openAI_API(
+        openai_prompt, openai_model, openai_text)
+
+    # 4. Hacer el llamado a la api
+    # 5. Reconstruir el documento y guardarlo
+    #   - Duplicar el archivo original (agregar fecha y hora)
 
     # Docx filename
     file_name = input("Write the file name: ") or "defaultfile.pdf"
