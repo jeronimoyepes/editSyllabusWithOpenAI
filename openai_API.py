@@ -12,7 +12,7 @@ def call_openAI_API(prompt, model, text, section):
     openai.Model.list()
 
     print(
-        f"\n______________\n\n Calling OpenAI with the prompt:\n -{prompt}- \n\n Using the model: '{model}' \n\n With the section: '{section}' \n\n______________\n\n Waiting for OpenAI response...\n")
+        f"\n______________\n\n\n Calling OpenAI with the prompt:\n -{prompt}- \n\n Using the model: '{model}' \n\n With the section: '{section}' \n\n______________\n\n\n\n Waiting for OpenAI response...\n")
 
     composedPrompt = f'{prompt} \n text: """{text}"""'
 
@@ -42,6 +42,6 @@ def call_openAI_API(prompt, model, text, section):
     response = api_response.choices[0].text
 
     print(
-        f'\n______________\n\nOpenAI responded with: \n\n {response}\n\n______________\n')
+        f'\n______________\n\n\nOpenAI responded with: \n\n {response}\n\n______________\n')
 
     return response
