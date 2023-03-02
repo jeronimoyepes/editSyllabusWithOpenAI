@@ -16,27 +16,6 @@ def trim_text(text, length):
              for i in range(0, len(text), length)]
     return trims[0]
 
-# Function to get text from file
-
-
-def get_text_from_file(file_to_read):
-    # Get file extension
-    file_extension = file_to_read.split('.')[-1].lower()
-
-    # Read text from file based on extension
-    if file_extension == 'docx' or file_extension == 'doc':
-        extracted_text = read_docx(file_to_read)
-        print("\n__Word document read__\n")
-    elif file_extension == 'pdf':
-        extracted_text = read_pdf(file_to_read)
-        print("Reading PDF document")
-    else:
-        print('Unsupported file format')
-        extracted_text = None
-    return extracted_text
-
-
-
 if __name__ == "__main__":
 
     print("\n\n~~___Running___~~\n\n")
@@ -59,11 +38,11 @@ if __name__ == "__main__":
         syllabus_selected_section).text
 
     # # # 6. Llamar la API de OpenAI
-    # openAI_response = call_openAI_API(
-    #     openai_prompt, openai_model, openai_text, syllabus_selected_section)
+    openAI_response = call_openAI_API(
+        openai_prompt, openai_model, openai_text, syllabus_selected_section)
     
     # 7. reconstructiong the virtual syllabus with the API response
-    syllabus_virtual_document.find(syllabus_selected_section).string = "cambio"
+    syllabus_virtual_document.find(syllabus_selected_section).string = openAI_response
 
     write_html_history(syllabus_virtual_document, openai_model, syllabus_selected_section)
    
