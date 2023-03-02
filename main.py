@@ -5,11 +5,17 @@ from docx import Document
 import PyPDF2
 import openai
 import os
+from datetime import datetime
+from bs4 import BeautifulSoup
+import  tkinter as tk
 
 # Scripts
 from get_inputs import capture_openAI_model, capture_syllabus_selected_section
 
-from bs4 import BeautifulSoup
+# Librería para ejecutar GUI
+# from tkinter import filedialog
+# root = tk.Tk()
+# root.withdraw()
 
 # Función para leer XML (HTML)
 
@@ -80,37 +86,40 @@ def get_text_from_file(file_to_read):
 # Function to get openAI response
 
 
-def call_openAI_API(prompt, model, text):
+def call_openAI_API(prompt, model, text, section):
 
-    print(f"\n__Calling OpenAI with the prompt:\n {prompt} \n\n Using the model: '{model}' \n\n Waiting for OpenAI response...\n")
+    print(
+        f"\n______________\n\n Calling OpenAI with the prompt:\n -{prompt}- \n\n Using the model: '{model}' \n\n With the section: '{section}' \n\n______________\n\n Waiting for OpenAI response...\n")
 
-    # Leer esta vuelta https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api 
+    composedPrompt = f'{prompt} \n text: """{text}"""'
 
-    if model == "edition": 
+    # buenas prácticas para crear propmts
+    # https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api
+
+    if model == "edition":
         completions = openai.Edit.create(
             engine="text-davinci-edit-001",
             input=text,
             instruction=prompt,
-            max_tokens=1024,
             n=1,
             temperature=0.7,
         )
-        
-    if model  == "completion":
+
+    if model == "completion":
         completions = openai.Completion.create(
             engine="text-davinci-003",
-            prompt=prompt,
+            prompt=composedPrompt,
             max_tokens=1024,
             n=1,
             stop=None,
             temperature=0.7,
         )
 
-    
     # Get openAI response text
     response = completions.choices[0].text
-    # Clean up openAI response text
-    response = response.replace('\n', ' ')
+
+    print(f'\n______________\n\nOpenAI responded with: \n\n {response}\n\n______________\n')
+
     return response
 
 # Function to write word document with given prompt and response
@@ -125,59 +134,48 @@ def write_docx(prompt, response):
     document.save('OpenAI response.docx')
 
 
+ # 5. Reconstruir el documento y guardarlo
+    #   - Duplicar el archivo original (agregar fecha y hora) justification_edit_12-01-23_01:12.html
+
+def write_html_history(xml, model, section) :
+    history_file_name = f'history/Syllabus_{datetime.now().strftime("%d-%m-%Y__%H-%M-%S")}_{section}_{model}.html'
+    with open(history_file_name, "w", encoding="UTF-8") as file:
+        file.write(str(xml))
+    return
+
+
 def read_syllabus_HTML():
-    with open(os.path.join(my_directory, "syllabus/current.html"), encoding="UTF-8") as html_doc:
+    with open(os.path.join(my_directory, "syllabus/FormatedSyllabus.html"), encoding="UTF-8") as html_doc:
         return BS(html_doc)
 
 
 if __name__ == "__main__":
 
-    # Capturar y almacenar la sección del syllabus que se desea usar
+    print("\n\n~~___Running___~~\n\n")
+
+    # 1. Capturar y almacenar la sección del syllabus que se desea usar
     syllabus_selected_section = capture_syllabus_selected_section()
 
-    # Leer el HTML del syllabus y almacenarlo en una variable
+    # 2. Leer el HTML del syllabus y almacenarlo en una variable
     syllabus_virtual_document = read_syllabus_HTML()
 
+    # 3. Capturar que modelo de OpenAI (Copletion, Edition) desea usar
     openai_model = capture_openAI_model()
 
-    # OpenAI prompt (What you want to do with de text_from_file)
+    # 4. Capturar las instrrucciones para la IA
     openai_prompt = input(
-        "\nType something to do with the document: ")
+        "\nType something to do with the text: \nR:")
 
-    # Sección de texto del syllabus
+    # 5. Extraer la sección del texto seleccionado del syllabus
     openai_text = syllabus_virtual_document.find(
         syllabus_selected_section).text
 
-    # Llamado a la API de OpenAI 
-    openAI_response = call_openAI_API(
-        openai_prompt, openai_model, openai_text)
+    # # 6. Llamar la API de OpenAI
+    # openAI_response = call_openAI_API(
+    #     openai_prompt, openai_model, openai_text, syllabus_selected_section)
+    
+    # 7. reconstructiong the virtual syllabus with the API response
+    syllabus_virtual_document.find(syllabus_selected_section).string = "cambio"
 
-    # 4. Hacer el llamado a la api
-    # 5. Reconstruir el documento y guardarlo
-    #   - Duplicar el archivo original (agregar fecha y hora)
-
-    # Docx filename
-    file_name = input("Write the file name: ") or "defaultfile.pdf"
-
-    # Concat filename with directory path
-    file_path = os.path.join(my_directory, file_name)
-
-    # Check if file exists
-    if file_path and os.path.exists(file_path):
-        print("\n\n~~___Running___~~\n\n")
-        print(f"File path: {file_path}\n")
-
-        text_from_file = get_text_from_file(file_path)
-
-        if text_from_file:
-
-            # Generate the prompt for the OpenAI API
-            prompt = (f"{openai_prompt}\n\n{trim_text(text_from_file)}")
-            openAI_response = call_openAI_API(prompt)
-            print(f"\n\n __OpenAI response:__ \n\n{openAI_response}\n")
-
-            # Write word document with the OpenAi Response
-            write_docx(prompt, openAI_response)
-            print("\n\n~~___Finished___~~\n\n")
-    else:
-        print("File does not exist")
+    write_html_history(syllabus_virtual_document, openai_model, syllabus_selected_section)
+   
