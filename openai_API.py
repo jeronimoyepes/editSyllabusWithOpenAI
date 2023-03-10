@@ -3,13 +3,7 @@ import openai
 
 # Function to get openAI response
 
-
 def call_openAI_API(prompt, model, text, section):
-
-    # Set OpenAI API key
-    openai.api_key = "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"
-
-    openai.Model.list()
 
     print(
         f"\n______________\n\n\n Calling OpenAI with the prompt:\n -{prompt}- \n\n Using the model: '{model}' \n\n With the section: '{section}' \n\n______________\n\n\n\n Waiting for OpenAI response...\n")
@@ -18,6 +12,10 @@ def call_openAI_API(prompt, model, text, section):
 
     # buenas prácticas para crear propmts
     # https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api
+
+    # Set OpenAI API key
+    openai.api_key = "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"
+    openai.Model.list()
 
     if model == "edition":
         api_response = openai.Edit.create(

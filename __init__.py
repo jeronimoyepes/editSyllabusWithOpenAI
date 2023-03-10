@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from docx import Document
-import os
-
 # Scripts
 from get_inputs import capture_openAI_model, capture_syllabus_selected_section, capture_boolean
 from manage_files import read_docx, read_pdf, write_docx, write_html_history, read_syllabus_HTML
